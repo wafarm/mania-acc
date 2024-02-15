@@ -16,6 +16,7 @@ fn pause() {
     // From https://stackoverflow.com/questions/26321592/how-can-i-read-one-character-from-stdin-without-having-to-hit-enter
 
     use termios::{Termios, TCSANOW, ECHO, ICANON, tcsetattr};
+    use std::io::Read;
 
     let stdin = 0; // couldn't get std::os::unix::io::FromRawFd to work on /dev/stdin or /dev/tty
     let termios = Termios::from_fd(stdin).unwrap();
