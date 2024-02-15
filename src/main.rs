@@ -1,3 +1,7 @@
+mod data;
+mod cli;
+mod calc;
+
 fn main() {
-    println!("Hello, world!");
+    cli::run();
 }
