@@ -4,10 +4,11 @@ use serde_json::Value;
 use crate::{calc, data};
 
 #[cfg(windows)]
+use std::process::Command;
+
+#[cfg(windows)]
 fn pause() {
     // Use the pause of cmd on Windows
-
-    use std::process::Command;
     Command::new("cmd.exe").args(["/c", "pause"]).status().unwrap();
 }
 
@@ -32,6 +33,12 @@ fn pause() {
     tcsetattr(stdin, TCSANOW, & termios).unwrap();  // reset the stdin to original termios data
 }
 
+#[cfg(windows)]
+fn clear_screen() {
+    Command::new("cmd.exe").args(["/c", "cls"]).status().unwrap();
+}
+
+#[cfg(unix)]
 fn clear_screen() {
     print!("\x1B[2J\x1B[1;1H");
     flush_stdout();
@@ -92,13 +99,12 @@ fn print_main_menu() {
 
 fn calc_single(data: &Value, group: &str) {
     let examples = (*data)["examples"][group].as_array().unwrap().iter().map(|it| it.as_str().unwrap().to_string()).collect::<Vec<_>>().join(", ");
-    let mut input_text = String::new();
     let dan_data: Vec<i32>;
     loop {
         print!("请输入你想计算的段位（例：{}）：", examples);
         flush_stdout();
 
-        io::stdin().read_line(&mut input_text).unwrap();
+        let input_text = get_line();
         if let Some(arr) = (*data)[group][input_text.trim()].as_array() {
             dan_data = arr.iter().map(|it| it.as_i64().unwrap() as i32).collect();
             break;
@@ -114,7 +120,7 @@ fn calc_single(data: &Value, group: &str) {
         acc_list.push(calc::calc_acc(acc / 100.0, &acc_list, &dan_data));
     }
 
-    let acc_str = acc_list.iter().map(|it| format!("{:2}%", it * 100.0)).collect::<Vec<String>>().join(" - ");
+    let acc_str = acc_list.iter().map(|it| format!("{:.2}%", it * 100.0)).collect::<Vec<String>>().join(" - ");
     println!("您的单曲准度依次为：{}", acc_str);
 
     pause();
